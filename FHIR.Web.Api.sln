@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34723.18
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FHIR.Web.Api", "FHIR.Web.Api\FHIR.Web.Api.csproj", "{66932897-F2DB-4B0A-AEC4-3AF48B55C032}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FHIR.Web.Client", "FHIR.Web.Client\FHIR.Web.Client.csproj", "{842C41BC-FCA2-4B4B-981A-62CE9A858954}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{66932897-F2DB-4B0A-AEC4-3AF48B55C032}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66932897-F2DB-4B0A-AEC4-3AF48B55C032}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66932897-F2DB-4B0A-AEC4-3AF48B55C032}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66932897-F2DB-4B0A-AEC4-3AF48B55C032}.Release|Any CPU.Build.0 = Release|Any CPU
+		{842C41BC-FCA2-4B4B-981A-62CE9A858954}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{842C41BC-FCA2-4B4B-981A-62CE9A858954}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{842C41BC-FCA2-4B4B-981A-62CE9A858954}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{842C41BC-FCA2-4B4B-981A-62CE9A858954}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F1E5C50D-8631-4B8A-8D1D-1BBAA9BEED4F}
+	EndGlobalSection
+EndGlobal

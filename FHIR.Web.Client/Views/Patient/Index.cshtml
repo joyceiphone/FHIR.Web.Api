@@ -1,0 +1,60 @@
+﻿@model List<PatientViewModel>
+
+@if (Model != null)
+{
+    <div class="p-3 mb-2 bg-secondary text-white">
+        <form>
+            <div class="d-flex align-items-center justify-content-around">
+                <div class="form-group d-flex mr-2 align-items-center">
+                    <label class="text-nowrap px-1">Last Name:</label>
+                    <input class="form-control mr-2" />
+                </div>
+                <div class="form-group d-flex mr-2 align-items-center">
+                    <label class="text-nowrap px-1">First Name:</label>
+                    <input class="form-control" />
+                </div>
+                <div class="form-group d-flex mr-2 align-items-center">
+                    <label class="text-nowrap px-1">DOB:</label>
+                    <input class="form-control" />
+                </div>
+                <div class="form-group d-flex mr-2 align-items-center">
+                    <label class="text-nowrap px-1">Patient ID:</label>
+                    <input class="form-control" />
+                </div>
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-light p-2 mx-1">Search</button>
+                    <button class="text-nowrap btn btn-primary py-2 px-3 mx-1" type="submit">Add Patient</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <table class="table table-striped table-responsive table-hover full-width-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Family Name</th>
+                <th>Given Name</th>
+                <th>Birth Date</th>
+                <th>Gender</th>
+                <!-- Add more columns as needed -->
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var patient in Model)
+            {
+                <tr>
+                    <td>@patient.Id</td>
+                    <td>@patient.FamilyName</td>
+                    <td>@patient.GivenName</td>
+                    <td>@patient.BirthDate</td>
+                    <td>@patient.Gender</td>
+                    <!-- Add more columns as needed -->
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No patients found.</p>
+}
