@@ -1,0 +1,29 @@
+﻿@model List<FHIR.Web.Client.Models.PatientViewModel>
+
+<table class="table table-striped table-responsive table-hover full-width-table">
+	<thead>
+		<tr>
+			<th></th>
+			<th>ID</th>
+			<th>Family Name</th>
+			<th>Given Name</th>
+			<th>Birth Date</th>
+			<th>Gender</th>
+			<!-- Add more columns as needed -->
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var patient in Model)
+		{
+			<tr>
+				<td><input type="radio" name="selectedPatient" value="@patient.Id" data-id="@patient.Id" data-family="@patient.FamilyName" data-given="@patient.GivenName" data-dob="@patient.BirthDate" /></td>
+				<td>@patient.Id</td>
+				<td>@patient.FamilyName</td>
+				<td>@patient.GivenName</td>
+				<td>@patient.BirthDate</td>
+				<td>@patient.Gender</td>
+				<!-- Add more columns as needed -->
+			</tr>
+		}
+	</tbody>
+</table>

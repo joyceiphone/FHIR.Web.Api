@@ -1,11 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Rest;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace FHIR.Web.Api.Controllers
 {
@@ -17,13 +12,17 @@ namespace FHIR.Web.Api.Controllers
 
 		public PatientController()
 		{
-			//test server
-			_fhirClient = new FhirClient("https://server.fire.ly");
+            var settings = new FhirClientSettings
+            {
+                PreferredFormat = ResourceFormat.Json,
+            };
+            //test server
+            _fhirClient = new FhirClient("https://fhirsandbox.healthit.gov/open/r4/fhir", settings);
 		}
 
 		// name: Sammy Lodewijk 
 		[HttpGet]
-		public async Task<ActionResult<Bundle>> GetPatientByNameAndBirthDate(string? familyName, string? birthDate, string? givenName)
+		public async Task<ActionResult<Bundle>> UpdatePatientList(string? familyName, string? birthDate, string? givenName)
 		{
 			try
 			{
@@ -94,14 +93,14 @@ namespace FHIR.Web.Api.Controllers
 		}
 
 		[HttpGet("medication/{id}")]
-		public async Task<ActionResult<IEnumerable<MedicationRequest>>> GetMedicationRequestsForPatientAsync(string id)
+		public async Task<ActionResult<IEnumerable<MedicationAdministration>>> GetMedicationRequestsForPatientAsync(string id)
 		{
 			try
 			{
 				var searchParams = new SearchParams();
 				searchParams.Add("patient", id);
 
-				var result = await _fhirClient.SearchAsync<MedicationRequest>(searchParams);
+				var result = await _fhirClient.SearchAsync<MedicationAdministration>(searchParams);
 
 				if (result == null)
 				{
@@ -109,7 +108,7 @@ namespace FHIR.Web.Api.Controllers
 				}
 				else
 				{
-					var medicationRequests = result.Entry.Select(entry => (MedicationRequest)entry.Resource).ToList();
+					var medicationRequests = result.Entry.Select(entry => (MedicationAdministration)entry.Resource).ToList();
 
 					return Ok(medicationRequests);
 				}

@@ -1,60 +1,120 @@
-﻿@model List<PatientViewModel>
+﻿@model List<FHIR.Web.Client.Models.PatientViewModel>
 
-@if (Model != null)
-{
-    <div class="p-3 mb-2 bg-secondary text-white">
-        <form>
-            <div class="d-flex align-items-center justify-content-around">
-                <div class="form-group d-flex mr-2 align-items-center">
-                    <label class="text-nowrap px-1">Last Name:</label>
-                    <input class="form-control mr-2" />
-                </div>
-                <div class="form-group d-flex mr-2 align-items-center">
-                    <label class="text-nowrap px-1">First Name:</label>
-                    <input class="form-control" />
-                </div>
-                <div class="form-group d-flex mr-2 align-items-center">
-                    <label class="text-nowrap px-1">DOB:</label>
-                    <input class="form-control" />
-                </div>
-                <div class="form-group d-flex mr-2 align-items-center">
-                    <label class="text-nowrap px-1">Patient ID:</label>
-                    <input class="form-control" />
-                </div>
-                <div class="d-flex align-items-center">
-                    <button class="btn btn-light p-2 mx-1">Search</button>
-                    <button class="text-nowrap btn btn-primary py-2 px-3 mx-1" type="submit">Add Patient</button>
-                </div>
-            </div>
-        </form>
-    </div>
-    <table class="table table-striped table-responsive table-hover full-width-table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Family Name</th>
-                <th>Given Name</th>
-                <th>Birth Date</th>
-                <th>Gender</th>
-                <!-- Add more columns as needed -->
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var patient in Model)
-            {
-                <tr>
-                    <td>@patient.Id</td>
-                    <td>@patient.FamilyName</td>
-                    <td>@patient.GivenName</td>
-                    <td>@patient.BirthDate</td>
-                    <td>@patient.Gender</td>
-                    <!-- Add more columns as needed -->
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-else
-{
-    <p>No patients found.</p>
+<div id="medicalInfo">
+	<h5>Patient: </h5>
+	<h5 class="row p-3"></h5>
+	<h5>MedicalRequest Id: </h5>
+</div>
+
+<div class="p-3 mb-2 bg-secondary text-white">
+	<form method="post">
+		<div class="d-flex align-items-center justify-content-around">
+			<div class="form-group d-flex mr-2 align-items-center">
+				<label class="text-nowrap px-1">Last Name:</label>
+				<input type="text" class="form-control mr-2" id="lastName" name="lastName" />
+			</div>
+			<div class="form-group d-flex mr-2 align-items-center">
+				<label class="text-nowrap px-1">First Name:</label>
+				<input class="form-control" id="firstName" name="firstName" />
+			</div>
+			<div class="form-group d-flex mr-2 align-items-center">
+				<label class="text-nowrap px-1">DOB:</label>
+				<input class="form-control" id="dob" name="dob" placeholder="yyyy-mm-dd" />
+			</div>
+			<div class="form-group d-flex mr-2 align-items-center">
+				<label class="text-nowrap px-1">Patient ID:</label>
+				<input class="form-control" id="patientId" name="patientId" />
+			</div>
+			<div class="d-flex align-items-center">
+				<button class="btn btn-light p-2 mx-1" id="search">Search</button>
+				<button class="text-nowrap btn btn-primary py-2 px-3 mx-1" id="add">Add Patient</button>
+			</div>
+		</div>
+	</form>
+</div>
+<div>
+	@if (Model != null && Model.Count() > 0)
+	{
+		<div id="patientList">
+			@await Html.PartialAsync("_PatientList", Model)
+		</div>
+	}
+	else
+	{
+		<p>No patients found.</p>
+	}
+</div>
+
+@section Scripts {
+	<script>
+		$(document).ready(function(){
+			$('input[name="selectedPatient"]').change(function () {
+				var id = $(this).data('id');
+				var familyName = $(this).data('family');
+				var givenName = $(this).data('given');
+				var birthDate = $(this).data('dob');
+
+				var queryParams = [];
+				queryParams.push('id=' + encodeURIComponent(id));
+				queryParams.push('family=' + encodeURIComponent(familyName));
+				queryParams.push('given=' + encodeURIComponent(givenName));
+				queryParams.push('dob=' + encodeURIComponent(birthDate));
+
+				if (id) {
+					$.ajax({
+						url: '@Url.Action("ViewMedicalHistory")' + '?' + queryParams.join('&'),
+						type: 'GET',
+						contentType: 'application/json; charset=utf-8',
+						success: function (response) {
+							console.log(response);
+							$('#medicalInfo').html(response);
+						},
+						error: function (xhr, status, error) {
+							console.error("Error: " + error);
+							console.error("Status: " + status);
+							console.error(xhr.responseText);
+							alert('Error fetching medical history.');
+						}
+					});
+				}
+			});
+			$('#search').click(function (e) {
+				e.preventDefault(); // Prevent default form submission
+
+				var baseUrl = '@Url.Action("UpdatePatients")';
+
+				var familyName = $('#lastName').val();
+				var givenName = $('#firstName').val();
+				var dob = $('#dob').val();
+
+				// Encode form data for URL
+				var queryParams = [];
+				if (familyName) {
+					queryParams.push('family=' + encodeURIComponent(familyName));
+				}
+				if (givenName) {
+					queryParams.push('given=' + encodeURIComponent(givenName));
+				}
+				if (dob) {
+					queryParams.push('dob=' + encodeURIComponent(dob));
+				}
+
+				var url = baseUrl + '?' + queryParams.join('&');
+
+				$.ajax({
+					url: url,
+					type: 'GET',
+					contentType: 'application/json',
+					success: function (data) {
+						console.log('AJAX request successful:', data);
+						console.log(data);
+						$('#patientList').html(data);
+					},
+					error: function (xhr, status, error) {
+						console.error('AJAX request error:', error);
+					}
+				});
+			});
+		})
+	</script>
 }

@@ -1,70 +1,165 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
 using FHIR.Web.Client.Models;
 using Hl7.Fhir.Model;
-using Newtonsoft.Json;
-using Hl7.Fhir.Serialization;
-using Newtonsoft.Json.Linq;
-using FHIR.Web.Client.Helpers;
+using Hl7.Fhir.Rest;
+using System.Linq;
 
 namespace FHIR.Web.Client.Controllers
 {
     public class PatientController : Controller
     {
-        private readonly HttpClient _client;
+        private readonly FhirClient _fhirClient;
 
-        public PatientController(IHttpClientFactory httpClientFactory)
+        public PatientController()
         {
-            _client = httpClientFactory.CreateClient();
-            _client.BaseAddress = new Uri("https://localhost:7148/api/Patient/12896"); // Adjust base address as per your API endpoint
+            _fhirClient = new FhirClient("https://fhirsandbox.healthit.gov/open/r4/fhir");
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             List<PatientViewModel> patients = new List<PatientViewModel>();
 
             try
             {
-                var response = await _client.GetAsync(_client.BaseAddress);
-                var jsonContent = await response.Content.ReadAsStringAsync();
+                var searchParams = new SearchParams();
+                var response = await _fhirClient.SearchAsync<Patient>(searchParams);
 
-                JObject jsonObject = JObject.Parse(jsonContent);
+				patients = response.Entry
+				    .Where(entry => entry?.Resource is Patient)
+					.Select(entry => MapToPatientViewModel(entry.Resource as Patient))
+					.ToList();
 
-                //jsonObject.Remove("active");
-
-                JsonHelper.ModifyProperties(jsonObject);
-
-                string modifiedJson = jsonObject.ToString();
-
-
-                var fhirParser = new FhirJsonParser();
-                var patient = fhirParser.Parse<Patient>(modifiedJson);
-
-                patients.Add(new PatientViewModel
-                {
-                    Id = patient.Id,
-                    BirthDate = patient.BirthDate,
-                    FamilyName = patient.Name[0].Family,
-                    GivenName = patient.Name.FirstOrDefault()?.Given.FirstOrDefault(),
-                    Gender = patient.Gender?.ToString()
-                });
-
-                return View(patients);
+				return View(patients);
+            }
+            catch(FhirOperationException ex)
+            {
+                Console.WriteLine($"FHIR Operation Exception: {ex.Message}");
             }
             catch (Exception ex)
             {
                 // Handle exception
                 Console.WriteLine($"Exception: {ex.Message}");
-                patients = new List<PatientViewModel>(); // or handle error case
             }
 
             return View(patients);
         }
 
-        // Additional client-side controller actions as needed
-    }
+        [HttpGet]
+        public async Task<IActionResult> UpdatePatients(string? family, string? given, string? dob )
+        {
+            List<PatientViewModel> patients = new List<PatientViewModel>();
+
+            try
+            {
+
+                var searchParams = new SearchParams();
+
+                if (!string.IsNullOrEmpty(family))
+                {
+                    searchParams.Add("family", family);
+                }
+
+                if (!string.IsNullOrEmpty(given))
+                {
+                    searchParams.Add("given", given);
+                }
+
+                if (!string.IsNullOrEmpty(dob))
+                {
+                    searchParams.Add("birthdate", dob);
+                }
+
+                var result = await _fhirClient.SearchAsync<Patient>(searchParams);
+
+                if (result == null)
+                {
+					return PartialView("_PatientList", patients);
+				}
+                else
+                {
+                    patients = result.Entry
+                    .Where(entry => entry.Resource is Patient)
+                    .Select(entry => MapToPatientViewModel(entry?.Resource as Patient))
+                    .ToList();
+
+					return PartialView("_PatientList", patients);
+				}
+            }
+            catch (FhirOperationException ex)
+            {
+                Console.WriteLine($"FHIR Operation Exception: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                // Handle exception
+                Console.WriteLine($"Exception: {ex.Message}");
+            }
+
+            return View(patients);
+        }
+
+		[HttpGet]
+		public async Task<IActionResult> ViewMedicalHistory(string? id, string ? family, string ? given, string ? dob)
+		{
+			var medicalHistories = new MedicalInfo { };
+
+			try
+			{
+				var searchParams = new SearchParams();
+				searchParams.Add("patient", id);
+
+				var result = await _fhirClient.SearchAsync<MedicationRequest>(searchParams);
+
+                Console.WriteLine(result);
+
+				var medicalList = result.Entry
+					.Where(entry => entry.Resource is MedicationRequest)
+					.Select(entry =>entry?.Resource)
+					.ToList();
+
+				foreach (var medicalRequest in medicalList)
+				{
+                    if(medicalRequest != null)
+                    {
+						var medicalInfo = MapToMedicalInfoViewModel(medicalRequest, family, given, dob);
+						return PartialView("_MedicalInfo", medicalInfo);
+					}
+				}
+			}
+			catch (FhirOperationException ex)
+			{
+				Console.WriteLine($"FHIR Operation Exception: {ex.Message}");
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Exception: {ex.Message}");
+			}
+
+			return PartialView("_MedicalInfo", medicalHistories);
+		}
+
+		private static PatientViewModel MapToPatientViewModel(Patient patient)
+        {
+            return new PatientViewModel
+            {
+                Id = patient.Id,
+                FamilyName = patient.Name.FirstOrDefault()?.Family,
+                GivenName = patient.Name.FirstOrDefault()?.Given.FirstOrDefault(),
+                BirthDate = patient.BirthDate,
+                Gender = patient.Gender?.ToString(),
+            };
+        }
+
+        private static MedicalInfo MapToMedicalInfoViewModel(Resource medicationRequest, string family, string given, string dob)
+        {
+            return new MedicalInfo
+            {
+                Id = medicationRequest.Id, 
+                Name = given + ' ' + family,
+                BirthDate = dob,
+            };
+        }
+
+	}
 }
